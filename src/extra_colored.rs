@@ -110,7 +110,14 @@ pub fn parse_old_desc_to_extra(text: &str) -> Vec<Extra> {
             tmp.clear();
 
             match paragraph {
-                Paragraph::Color(color_name) => color = color_name,
+                Paragraph::Color(color_name) => {
+                    color = color_name;
+                    obfuscated = false;
+                    bold = false;
+                    italic = false;
+                    underline = false;
+                    strikethrough = false;
+                },
                 Paragraph::Obfuscated(val) => obfuscated = val,
                 Paragraph::Bold(val) => bold = val,
                 Paragraph::Italic(val) => italic = val,
