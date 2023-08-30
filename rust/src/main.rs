@@ -1,5 +1,10 @@
 use color_eyre::Result;
-use tokio::io::{AsyncWriteExt, AsyncReadExt};
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    net::TcpStream,
+};
+
+// https://github.com/LhAlant/MinecraftSLP
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -31,8 +36,6 @@ async fn main() -> Result<()> {
     insert_bytes(port, &mut data, &mut idx);
     insert_bytes(next_state, &mut data, &mut idx);
 
-    println!("{:?}", data);
-
     let status_request_packet = [1u8, 0u8];
 
     let mut stream = tokio::net::TcpStream::connect(format!("{}:{}", ip, port)).await?;
@@ -41,18 +44,37 @@ async fn main() -> Result<()> {
     stream.write_all(&data).await?;
     stream.write_all(&status_request_packet).await?;
 
-    let mut buffer = [0u8; 1024];
-    loop {
-        let bytes_read = stream.read(&mut buffer).await?;
+    _ = read_varint(&mut stream).await?;
 
-        if bytes_read == 0 {
-            break;
-        }
+    let mut buf = [0u8; 1];
+    stream.read_exact(&mut buf).await?;
+    let _packet_id = buf[0];
 
-        println!("READ: {:?}", &buffer[..bytes_read]);
-    }
+    let string_length = read_varint(&mut stream).await?;
+    let mut buf = vec![0u8; string_length as usize];
+    stream.read_exact(&mut buf).await?;
+    let json = String::from_utf8(buf)?;
+
+    println!("{}", json);
 
     Ok(())
+}
+
+async fn read_varint(stream: &mut TcpStream) -> Result<u32> {
+    let mut unpacked_varint = 0u32;
+    let mut buf = [0x80u8; 1];
+    let mut i = 0u8;
+
+    while (buf[0] & 0x80) != 0 {
+        stream.read_exact(&mut buf).await?;
+
+        let val = ((buf[0] & 0x7F) << (7 * i)) as u32;
+        unpacked_varint |= val;
+
+        i += 1;
+    }
+
+    return Ok(unpacked_varint);
 }
 
 fn pack_varint(mut value: u32) -> u32 {
