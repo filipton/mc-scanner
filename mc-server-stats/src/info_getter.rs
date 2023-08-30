@@ -3,7 +3,6 @@ use crate::{
     utils::{bytes_used, insert_bytes, insert_string, pack_varint, read_varint},
 };
 use color_eyre::Result;
-use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};

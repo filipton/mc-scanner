@@ -1,6 +1,5 @@
-use colored::{ColoredString, Colorize};
-
 use crate::info_getter::Extra;
+use colored::{ColoredString, Colorize};
 
 pub fn parse_extra(extra: &Vec<Extra>) -> String {
     let mut tmp = String::new();
@@ -117,7 +116,7 @@ pub fn parse_old_desc_to_extra(text: &str) -> Vec<Extra> {
                     italic = false;
                     underline = false;
                     strikethrough = false;
-                },
+                }
                 Paragraph::Obfuscated(val) => obfuscated = val,
                 Paragraph::Bold(val) => bold = val,
                 Paragraph::Italic(val) => italic = val,
