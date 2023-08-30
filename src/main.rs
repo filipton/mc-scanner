@@ -25,7 +25,6 @@ async fn main() -> Result<()> {
     let mc_info = info_getter::get_mc_info(&args.ip, args.port).await?;
 
     println!("{:#?}", mc_info);
-
     println!("{}", mc_info.description.get_colored());
 
     Ok(())

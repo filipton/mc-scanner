@@ -1,5 +1,5 @@
 use crate::{
-    extra_colored::get_colored_bit,
+    extra_colored::{parse_extra, parse_old_desc_to_extra},
     utils::{bytes_used, insert_bytes, insert_string, pack_varint, read_varint},
 };
 use color_eyre::Result;
@@ -139,6 +139,10 @@ pub struct DescriptionNew {
 #[serde(rename_all = "camelCase")]
 pub struct Extra {
     pub bold: Option<bool>,
+    pub italic: Option<bool>,
+    pub underline: Option<bool>,
+    pub strikethrough: Option<bool>,
+    pub obfuscated: Option<bool>,
 
     pub color: Option<String>,
     pub text: String,
@@ -154,32 +158,17 @@ pub struct ModInfo {
 
 impl Description {
     pub fn get_colored(&self) -> String {
-        if let Description::Old(text) = self {
-            return text.clone();
-        }
-
-        if let Description::New(new) = self {
-            if new.extra.is_empty() {
-                return new.text.clone();
-            }
-
-            let mut tmp = String::new();
-            for extra in &new.extra {
-                let mut colored_text = get_colored_bit(
-                    &extra.clone().color.unwrap_or(String::from("white")),
-                    extra.bold.unwrap_or(false),
-                    &extra.text,
-                );
-
-                if extra.bold.unwrap_or(false) {
-                    colored_text = colored_text.bold();
+        let extra = match self {
+            Description::Old(text) => parse_old_desc_to_extra(text),
+            Description::New(new) => {
+                if new.extra.is_empty() {
+                    parse_old_desc_to_extra(&new.text)
+                } else {
+                    new.extra.clone()
                 }
-
-                tmp += format!("{}", colored_text).as_str();
             }
-            return tmp;
-        }
+        };
 
-        return String::new();
+        return parse_extra(&extra);
     }
 }
