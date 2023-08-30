@@ -1,6 +1,7 @@
 use crate::utils::{bytes_used, insert_bytes, insert_string, pack_varint, read_varint};
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 const PROTOCOL_VERSION: u32 = 760;
@@ -85,6 +86,9 @@ pub struct ServerInfo {
 
     #[serde(default)]
     pub previews_chat: bool,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub modinfo: Option<ModInfo>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -114,5 +118,24 @@ pub struct Sample {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Description {
+    #[serde(default)]
+    pub extra: Vec<Extra>,
+
     pub text: String,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Extra {
+    pub bold: Option<bool>,
+    pub color: Option<String>,
+    pub text: String,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModInfo {
+    #[serde(rename = "type")]
+    pub type_field: String,
+    pub mod_list: Vec<Value>,
 }

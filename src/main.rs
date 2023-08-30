@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
     color_eyre::install()?;
     let args = Args::parse();
 
-    println!("{:?}", info_getter::get_mc_info(&args.ip, args.port).await?);
+    println!("{:#?}", info_getter::get_mc_info(&args.ip, args.port).await?);
 
     Ok(())
 }
