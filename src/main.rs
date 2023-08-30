@@ -3,6 +3,7 @@
 use clap::Parser;
 use color_eyre::Result;
 
+mod extra_colored;
 mod info_getter;
 mod utils;
 
@@ -21,7 +22,11 @@ async fn main() -> Result<()> {
     color_eyre::install()?;
     let args = Args::parse();
 
-    println!("{:#?}", info_getter::get_mc_info(&args.ip, args.port).await?);
+    let mc_info = info_getter::get_mc_info(&args.ip, args.port).await?;
+
+    println!("{:#?}", mc_info);
+
+    println!("{}", mc_info.description.get_colored());
 
     Ok(())
 }

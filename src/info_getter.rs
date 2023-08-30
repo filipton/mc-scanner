@@ -1,5 +1,9 @@
-use crate::utils::{bytes_used, insert_bytes, insert_string, pack_varint, read_varint};
+use crate::{
+    extra_colored::get_colored_bit,
+    utils::{bytes_used, insert_bytes, insert_string, pack_varint, read_varint},
+};
 use color_eyre::Result;
+use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -116,8 +120,15 @@ pub struct Sample {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", untagged)]
+pub enum Description {
+    Old(String),
+    New(DescriptionNew),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Description {
+pub struct DescriptionNew {
     #[serde(default)]
     pub extra: Vec<Extra>,
 
@@ -128,6 +139,7 @@ pub struct Description {
 #[serde(rename_all = "camelCase")]
 pub struct Extra {
     pub bold: Option<bool>,
+
     pub color: Option<String>,
     pub text: String,
 }
@@ -138,4 +150,36 @@ pub struct ModInfo {
     #[serde(rename = "type")]
     pub type_field: String,
     pub mod_list: Vec<Value>,
+}
+
+impl Description {
+    pub fn get_colored(&self) -> String {
+        if let Description::Old(text) = self {
+            return text.clone();
+        }
+
+        if let Description::New(new) = self {
+            if new.extra.is_empty() {
+                return new.text.clone();
+            }
+
+            let mut tmp = String::new();
+            for extra in &new.extra {
+                let mut colored_text = get_colored_bit(
+                    &extra.clone().color.unwrap_or(String::from("white")),
+                    extra.bold.unwrap_or(false),
+                    &extra.text,
+                );
+
+                if extra.bold.unwrap_or(false) {
+                    colored_text = colored_text.bold();
+                }
+
+                tmp += format!("{}", colored_text).as_str();
+            }
+            return tmp;
+        }
+
+        return String::new();
+    }
 }
