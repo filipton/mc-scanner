@@ -19,8 +19,23 @@ async fn main() -> Result<()> {
 
     let mc_info = get_mc_info(&args.ip, args.port).await?;
 
-    println!("{:#?}", mc_info);
-    println!("{}", mc_info.description.get_colored());
+    //println!("{:#?}", mc_info);
+    println!("===== SERVER INFO =====");
+    println!("{}\n", mc_info.description.get_colored());
+    println!(
+        "Players: {}/{}",
+        mc_info.players.online, mc_info.players.max
+    );
+    println!("Version: {}", mc_info.version.name);
+
+    if !mc_info.players.sample.is_empty() {
+        println!("\n===== PLAYER LIST =====");
+        for player in mc_info.players.sample {
+            println!("{}", player.name);
+        }
+    }
+
+    println!("=======================");
 
     Ok(())
 }
